@@ -1,38 +1,37 @@
 import numpy as np
-from matplotlib import scale as mscale
 from matplotlib import transforms as mtransforms
-from matplotlib.ticker import FixedLocator
 from numpy import ma
 
 
-class LinLogPressureScale(mscale.ScaleBase):
-    name = 'linlogp'
-
-    def __init__(self, axis, *, threshold=1e-5):
-        super().__init__(axis)
-        if threshold <= 0:
-            raise ValueError('threshold must be positive')
-        self.threshold = threshold
-
-    def get_transform(self):
-        return LinLogPressureTransform(self.threshold)
-
-    def set_default_locators_and_formatters(self, axis):
-        axis.set(major_locator=FixedLocator([1, 10, 100, 400, 700, 1000]))
-
-    def limit_range_for_scale(self, vmin, vmax, minpos):
-        return max(vmin, self.threshold), max(vmax, self.threshold)
-
-
 class LinLogPressureTransform(mtransforms.Transform):
+    """Forward transformation for the hybrid linear-logarithmic axis scale.
+
+    Attributes:
+        threshold: lower bound for pressure.
+    """
+
     input_dims = 1
     output_dims = 1
 
     def __init__(self, threshold):
+        """Initialise the transformation.
+
+        Args:
+            threshold: lower bound for pressure.
+        """
         mtransforms.Transform.__init__(self)
         self.threshold = threshold
 
     def transform_non_affine(self, pressure):
+        """Apply the scale.
+
+        Args:
+            pressure: array of pressure values to transform.
+
+        Returns:
+            Array of transformed pressure. Values below the
+            threshold are masked.
+        """
         masked = ma.masked_where(pressure < self.threshold, pressure)
         if masked.mask.any():
             return ma.where(
@@ -47,18 +46,38 @@ class LinLogPressureTransform(mtransforms.Transform):
         )
 
     def inverted(self):
+        """Get the inverse transformation."""
         return InvertedLinLogPressureTransform(self.threshold)
 
 
 class InvertedLinLogPressureTransform(mtransforms.Transform):
+    """Inverse transformation for the hybrid linear-logarithmic axis scale.
+
+    Attributes:
+        threshold: lower bound for pressure.
+    """
+
     input_dims = 1
     output_dims = 1
 
     def __init__(self, threshold):
+        """Initialise the transformation.
+
+        Args:
+            threshold: lower bound for pressure.
+        """
         mtransforms.Transform.__init__(self)
         self.threshold = threshold
 
     def transform_non_affine(self, y_coordinate):
+        """Apply the scale.
+
+        Args:
+            y_coordinate: array of y-coordinates to inverse transform.
+
+        Returns:
+            Array of pressure, computed by inverting the y-coordinates.
+        """
         return np.where(
             y_coordinate >= 2,
             100 + (y_coordinate - 2) * (1000 - 100) / 3,
@@ -66,4 +85,5 @@ class InvertedLinLogPressureTransform(mtransforms.Transform):
         )
 
     def inverted(self):
+        """Get the inverse transformation."""
         return LinLogPressureTransform(self.threshold)
