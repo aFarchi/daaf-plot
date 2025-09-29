@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import numpy as np
 from matplotlib import scale as mscale
 from matplotlib import transforms as mtransforms
@@ -17,7 +15,7 @@ class LinLogPressureScale(mscale.ScaleBase):
         self.threshold = threshold
 
     def get_transform(self):
-        return self.LinLogPressureTransform(self.threshold)
+        return LinLogPressureTransform(self.threshold)
 
     def set_default_locators_and_formatters(self, axis):
         axis.set(major_locator=FixedLocator([1, 10, 100, 400, 700, 1000]))
@@ -25,43 +23,47 @@ class LinLogPressureScale(mscale.ScaleBase):
     def limit_range_for_scale(self, vmin, vmax, minpos):
         return max(vmin, self.threshold), max(vmax, self.threshold)
 
-    class LinLogPressureTransform(mtransforms.Transform):
-        input_dims = output_dims = 1
 
-        def __init__(self, threshold):
-            mtransforms.Transform.__init__(self)
-            self.threshold = threshold
+class LinLogPressureTransform(mtransforms.Transform):
+    input_dims = 1
+    output_dims = 1
 
-        def transform_non_affine(self, p):
-            masked = ma.masked_where(p < self.threshold, p)
-            if masked.mask.any():
-                return ma.where(
-                    p >= 100,
-                    2 + 3 * (p - 100) / (1000 - 100),
-                    ma.log10(p),
-                )
-            return np.where(
-                p >= 100,
-                2 + 3 * (p - 100) / (1000 - 100),
-                np.log10(p),
+    def __init__(self, threshold):
+        mtransforms.Transform.__init__(self)
+        self.threshold = threshold
+
+    def transform_non_affine(self, pressure):
+        masked = ma.masked_where(pressure < self.threshold, pressure)
+        if masked.mask.any():
+            return ma.where(
+                pressure >= 100,
+                2 + 3 * (pressure - 100) / (1000 - 100),
+                ma.log10(pressure),
             )
+        return np.where(
+            pressure >= 100,
+            2 + 3 * (pressure - 100) / (1000 - 100),
+            np.log10(pressure),
+        )
 
-        def inverted(self):
-            return LinLogPressureScale.InvertedLinLogPressureTransform(self.threshold)
+    def inverted(self):
+        return InvertedLinLogPressureTransform(self.threshold)
 
-    class InvertedLinLogPressureTransform(mtransforms.Transform):
-        input_dims = output_dims = 1
 
-        def __init__(self, threshold):
-            mtransforms.Transform.__init__(self)
-            self.threshold = threshold
+class InvertedLinLogPressureTransform(mtransforms.Transform):
+    input_dims = 1
+    output_dims = 1
 
-        def transform_non_affine(self, y):
-            return np.where(
-                y >= 2,
-                100 + (y - 2) * (1000 - 100) / 3,
-                np.power(10, y),
-            )
+    def __init__(self, threshold):
+        mtransforms.Transform.__init__(self)
+        self.threshold = threshold
 
-        def inverted(self):
-            return LinLogPressureScale.LinLogPressureTransform(self.threshold)
+    def transform_non_affine(self, y_coordinate):
+        return np.where(
+            y_coordinate >= 2,
+            100 + (y_coordinate - 2) * (1000 - 100) / 3,
+            np.power(10, y_coordinate),
+        )
+
+    def inverted(self):
+        return LinLogPressureTransform(self.threshold)
