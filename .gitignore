@@ -1,7 +1,7 @@
 # pixi environments
-.pixi/*
-!.pixi/config.toml
+.pixi
 pixi.lock
+pixi.toml
 
 .idea
 *.swp

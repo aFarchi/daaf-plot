@@ -1,11 +1,11 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
 [project]
-authors = [{name = "Alban Farchi", email = "alban.farchi@ecmwf.int"}]
-dependencies = ["cartopy", "ipython", "ipywidgets", "matplotlib", "numpy", "pandas"]
-name = "daaf-plot"
-requires-python = ">= 3.11"
-version = "0.2.0"
-description = "Personal python toolbox to make interactive plot in python notebooks"
-readme = "README.md"
+authors = [
+    {name = "Alban Farchi", email = "alban.farchi@ecmwf.int"},
+]
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -18,66 +18,46 @@ classifiers = [
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Visualization",
 ]
+dependencies = [
+    "cartopy",
+    "ipympl",
+    "ipython",
+    "ipywidgets",
+    "matplotlib",
+    "numpy",
+    "pandas",
+]
+description = "Personal python toolbox to make interactive plot in python notebooks"
+name = "daaf-plot"
+readme = "README.md"
+requires-python = ">= 3.11"
+version = "0.2.0"
 keywords = [
     "visualization",
     "interactive plots",
     "notebooks",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "ipykernel",
+    "xarray",
+    "ruff",
+    "netcdf4",
+]
+complete = ["daaf-plot[dev]"]
+
 [project.urls]
 Documentation = "https://github.com/aFarchi/daaf-plot"
-Source = "https://github.com/aFarchi/daaf-plot"
 Issues = "https://github.com/aFarchi/daaf-plot/issues"
-
-[build-system]
-build-backend = "hatchling.build"
-requires = ["hatchling"]
-
-[tool.pixi.workspace]
-channels = ["conda-forge"]
-platforms = ["osx-arm64"]
-
-[tool.pixi.pypi-dependencies]
-daaf_plot = { path = ".", editable = true }
-
-[tool.pixi.tasks]
-
-[tool.pixi.dependencies]
-cartopy = ">=0.25.0,<0.26"
-ipympl = ">=0.9.7,<0.10"
-ipython = ">=9.5.0,<10"
-ipywidgets = ">=8.1.7,<9"
-matplotlib = ">=3.10.6,<4"
-numpy = ">=2.3.3,<3"
-pandas = ">=2.3.2,<3"
-xarray = ">=2025.9.0,<2026"
-jupyter = ">=1.1.1,<2"
-pixi-pycharm = ">=0.0.9,<0.0.10"
-
-[tool.pixi.feature.dev.dependencies]
-mypy = "*"
-ruff = "*"
-netcdf4 = ">=1.7.2,<2"
-
-[tool.pixi.feature.doc.dependencies]
-sphinx = "*"
-sphinx-rtd-theme = "*"
-nbsphinx = "*"
-sphinx-gallery = "*"
-tomli = "*"
-m2r2 = "*"
-
-[tool.pixi.environments]
-default = { solve-group = "default" }
-dev = { features = ["dev"], solve-group = "default" }
-doc = { features = ["doc"], solve-group = "doc" }
+Source = "https://github.com/aFarchi/daaf-plot"
 
 [tool.ruff]
 preview = true
 
 [tool.ruff.format]
-quote-style = "single"
 docstring-code-format = true
+quote-style = "single"
 
 [tool.ruff.lint]
 flake8-quotes.inline-quotes = "single"
