@@ -5,3 +5,4 @@ pixi.lock
 
 .idea
 *.swp
+.ipynb_checkpoints
