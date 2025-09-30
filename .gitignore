@@ -6,3 +6,5 @@ pixi.lock
 .idea
 *.swp
 .ipynb_checkpoints
+dist
+__pycache__

@@ -1,11 +1,33 @@
 [project]
 authors = [{name = "Alban Farchi", email = "alban.farchi@ecmwf.int"}]
-dependencies = []
+dependencies = ["cartopy", "ipython", "ipywidgets", "matplotlib", "numpy", "pandas"]
 name = "daaf-plot"
 requires-python = ">= 3.11"
 version = "0.2.0"
 description = "Personal python toolbox to make interactive plot in python notebooks"
 readme = "README.md"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Framework :: Jupyter :: JupyterLab",
+    "Framework :: Matplotlib",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+keywords = [
+    "visualization",
+    "interactive plots",
+    "notebooks",
+]
+
+[project.urls]
+Documentation = "https://github.com/aFarchi/daaf-plot"
+Source = "https://github.com/aFarchi/daaf-plot"
+Issues = "https://github.com/aFarchi/daaf-plot/issues"
 
 [build-system]
 build-backend = "hatchling.build"
