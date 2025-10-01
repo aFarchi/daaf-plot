@@ -1,0 +1,30 @@
+[workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[pypi-dependencies]
+daaf_plot = { path = ".", editable = true }
+
+[tasks]
+
+[dependencies]
+cartopy = ">=0.25.0,<0.26"
+ipympl = ">=0.9.7,<0.10"
+ipython = ">=9.6.0,<10"
+ipywidgets = ">=8.1.7,<9"
+matplotlib = ">=3.10.6,<4"
+numpy = ">=2.3.3,<3"
+pandas = ">=2.3.3,<3"
+xarray = ">=2025.9.0,<2026"
+pixi-pycharm = ">=0.0.9,<0.0.10"
+
+[feature.dev.dependencies]
+mypy = ">=1.18.2,<2"
+ruff = ">=0.13.2,<0.14"
+netcdf4 = ">=1.7.2,<2"
+ipykernel = ">=6.30.1,<7"
+
+[environments]
+default = { solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }
+
