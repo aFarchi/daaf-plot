@@ -1,5 +1,6 @@
 # daaf-plot
 
+[![PyPI version](https://badge.fury.io/py/daaf-plot.svg)](https://badge.fury.io/py/daaf-plot)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 `daaf-plot` is a python toolbox to make interactive plot in python notebooks.
