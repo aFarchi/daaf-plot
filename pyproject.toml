@@ -26,12 +26,13 @@ dependencies = [
     "matplotlib",
     "numpy",
     "pandas",
+    "xarray",
 ]
 description = "Personal python toolbox to make interactive plot in python notebooks"
 name = "daaf-plot"
 readme = "README.md"
 requires-python = ">= 3.11"
-version = "0.2.0"
+version = "1.0.0"
 keywords = [
     "visualization",
     "interactive plots",
@@ -41,14 +42,11 @@ keywords = [
 [project.optional-dependencies]
 dev = [
     "ipykernel",
-    "xarray",
-    "ruff",
     "netCDF4",
+    "ruff",
 ]
-complete = ["daaf-plot[dev]"]
 
 [project.urls]
-Documentation = "https://github.com/aFarchi/daaf-plot"
 Issues = "https://github.com/aFarchi/daaf-plot/issues"
 Source = "https://github.com/aFarchi/daaf-plot"
 
