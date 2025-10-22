@@ -74,3 +74,5 @@ and can be used as follows:
 - write docstrings
 - write documentation
 - add type hints
+- substitute netCDF4 -> h5netcdf
+- is the distinction between "default" and "dev" environment in pixi really needed?
