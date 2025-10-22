@@ -19,8 +19,8 @@ def open_figure(
     match (colorbar, legend):
         case None, None:
             kwargs |= dict(
-                pad_w_ax_vaux=0,
-                vaux_w=0,
+                pad_w_ax_vertical_aux=0,
+                vertical_aux_w=0,
                 pad_h_ax_horizontal_aux=0,
                 horizontal_aux_h=0,
             )

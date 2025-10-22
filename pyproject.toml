@@ -32,7 +32,7 @@ description = "Personal python toolbox to make interactive plot in python notebo
 name = "daaf-plot"
 readme = "README.md"
 requires-python = ">= 3.11"
-version = "1.0.0"
+version = "1.0.1"
 keywords = [
     "visualization",
     "interactive plots",

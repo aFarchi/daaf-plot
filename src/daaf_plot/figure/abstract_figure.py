@@ -132,7 +132,7 @@ class AbstractFigure(abc.ABC):
         plt.close(self.figure['figure'])
 
     def get_data(self, **kwargs):
-        return self.da_data.isel(**kwargs)
+        return self.da_data.isel(**kwargs).load()
 
     def get_first_data(self):
         selection = {
