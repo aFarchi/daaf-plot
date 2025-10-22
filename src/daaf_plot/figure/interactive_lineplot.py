@@ -1,9 +1,9 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import ipywidgets as widgets
+import matplotlib.pyplot as plt
+import numpy as np
 
-from daaf_plot.figure.abstract_interactive_figure import AbstractInteractiveFigure
 import daaf_plot.style
+from daaf_plot.figure.abstract_interactive_figure import AbstractInteractiveFigure
 
 
 class InteractiveLinePlot(AbstractInteractiveFigure):

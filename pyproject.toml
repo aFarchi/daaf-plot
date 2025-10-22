@@ -61,3 +61,4 @@ quote-style = "single"
 flake8-quotes.inline-quotes = "single"
 mccabe.max-complexity = 12
 pydocstyle.convention = "google"
+select = ["I"]

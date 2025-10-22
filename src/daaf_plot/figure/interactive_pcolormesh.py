@@ -1,11 +1,11 @@
 import cartopy.crs as ccrs
-import matplotlib.pyplot as plt
-import matplotlib.colors as m_colors
 import ipywidgets as widgets
+import matplotlib.colors as m_colors
+import matplotlib.pyplot as plt
 
+import daaf_plot.style
 from daaf_plot.figure.abstract_interactive_figure import AbstractInteractiveFigure
 from daaf_plot.style.pcolormesh_hover_formatter import PColorMeshHoverFormatter
-import daaf_plot.style
 
 
 class InteractivePColorMesh(AbstractInteractiveFigure):
