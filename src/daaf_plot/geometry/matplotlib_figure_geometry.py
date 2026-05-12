@@ -74,6 +74,7 @@ class MatplotlibFigureGeometry:
         num_rows,
         num_cols,
         *,
+        dpi=100,
         figure_w=None,
         axes_w=None,
         figure_h=None,
@@ -94,10 +95,13 @@ class MatplotlibFigureGeometry:
         y_label=None,
         vertical_aux_ax_name=None,
         horizontal_aux_ax_name=None,
+        share_x='all',
+        share_y='all',
     ):
         self.num_rows = num_rows
         self.num_cols = num_cols
 
+        self.dpi = dpi
         self.figure_w = figure_w
         self.axes_w = axes_w
 
@@ -122,6 +126,9 @@ class MatplotlibFigureGeometry:
         self.y_label = y_label
         self.vertical_aux_ax_name = vertical_aux_ax_name
         self.horizontal_aux_ax_name = horizontal_aux_ax_name
+
+        self.share_x = share_x
+        self.share_y = share_y
 
     def tolist(
         self,
@@ -282,8 +289,6 @@ class MatplotlibFigureGeometry:
             sharex=share_x,
             sharey=share_y,
         )
-        share_x = share_x or ax
-        share_y = share_y or ax
         if ix > 0:
             ax.tick_params(labelleft=False)
         elif self.y_label is not None:
@@ -292,31 +297,41 @@ class MatplotlibFigureGeometry:
             ax.tick_params(labelbottom=False)
         elif self.x_label is not None:
             ax.set_xlabel(self.x_label)
-        return share_x, share_y, ax
+        return ax
 
     def open_figure(self):
         figure_w, figure_h, axes_extent = self.get_axes_extent()
 
         # create figure
-        figure = plt.figure(figsize=(figure_w, figure_h))
+        figure = plt.figure(figsize=(figure_w, figure_h), dpi=self.dpi)
         figure.canvas.header_visible = False
 
         # add main axes
         axes = []
-        share_x = None
-        share_y = None
+        share_x_axes = [[None for _ in range(self.num_cols)] for _ in range(self.num_rows)]
+        share_y_axes = [[None for _ in range(self.num_cols)] for _ in range(self.num_rows)]
         for iy in range(self.num_rows - 1, -1, -1):
             axes_inner = []
             for ix in range(self.num_cols):
-                share_x, share_y, ax = self.open_ax(
+                ax = self.open_ax(
                     figure,
                     axes_extent,
                     ix,
                     iy,
-                    share_x,
-                    share_y,
+                    share_x=share_x_axes[iy][ix],
+                    share_y=share_y_axes[iy][ix],
                 )
                 axes_inner.append(ax)
+                if self.share_x == 'all' and ix == 0 and iy == self.num_rows - 1:
+                    share_x_axes = [[ax for _ in range(self.num_cols)] for _ in range(self.num_rows)]
+                elif self.share_x == 'col' and iy == self.num_rows - 1:
+                    for jy in range(self.num_rows):
+                        share_x_axes[jy][ix] = ax
+                if self.share_y == 'all' and ix == 0 and iy == self.num_rows - 1:
+                    share_y_axes = [[ax for _ in range(self.num_cols)] for _ in range(self.num_rows)]
+                if self.share_y == 'row' and ix == 0:
+                    for jx in range(self.num_cols):
+                        share_y_axes[iy][jx] = ax
             axes.append(axes_inner)
         axes = np.array(axes)
 
