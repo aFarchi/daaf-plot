@@ -25,8 +25,8 @@ class InteractiveLinePlot(AbstractInteractiveFigure):
         )
         self.x_dim = x_dim
         self.line_dim = line_dim
-        self.open_figure_kwargs |= dict(x_label=self.x_dim, colorbar=None)
-        self.map_legend_to_ax = dict()
+        self.open_figure_kwargs |= {'x_label': self.x_dim, 'colorbar': None}
+        self.map_legend_to_ax = {}
         if 'legend' not in self.open_figure_kwargs:
             self.open_figure_kwargs['legend'] = 'vertical'
 
@@ -54,22 +54,30 @@ class InteractiveLinePlot(AbstractInteractiveFigure):
         da_data = self.get_first_data()
         self.figure['lines'] = []
         for ax, title, facet_data in zip(
-            self.figure['axes'], self.facet_titles(), self.facet_data(da_data)
+            self.figure['axes'],
+            self.facet_titles(),
+            self.facet_data(da_data),
+            strict=True,
         ):
             ax.set_title(title)
             self.figure['lines'].append(self.plot_lines(ax, facet_data))
         self.figure['fake_lines'] = [
             self.figure['legend_ax'].plot(
-                [], [], label=self.format_dim(self.line_dim, i)
+                [],
+                [],
+                label=self.format_dim(self.line_dim, i),
             )[0]
             for i in range(len(da_data[self.line_dim]))
         ]
         self.figure['title'] = plt.suptitle('tmp title')
         self.figure['legend_ax'].tick_params(
-            left=None, bottom=None, labelleft=None, labelbottom=None
+            left=None,
+            bottom=None,
+            labelleft=None,
+            labelbottom=None,
         )
         self.figure['legend_ax'].spines[['left', 'top', 'right', 'bottom']].set_visible(
-            False
+            False,
         )
 
     def update_selection(self, *, smoothing, **kwargs):
@@ -78,35 +86,39 @@ class InteractiveLinePlot(AbstractInteractiveFigure):
             da_data = da_data.rolling(**{self.x_dim: smoothing}, center=True).mean()
         title = self.get_title(**kwargs)
         self.figure['title'].set_text(title)
-        for lines, facet_data in zip(self.figure['lines'], self.facet_data(da_data)):
+        for lines, facet_data in zip(
+            self.figure['lines'],
+            self.facet_data(da_data),
+            strict=True,
+        ):
             self.update_lines(lines, facet_data)
         self.figure['figure'].canvas.draw_idle()
 
     def create_style_widgets(self):
-        new_widgets = dict(
-            cmap=widgets.Dropdown(
+        new_widgets = {
+            'cmap': widgets.Dropdown(
                 options=daaf_plot.style.discrete_cmap_list,
                 value='deep',
                 description='cmap:',
             ),
-            num_colors=widgets.IntText(
+            'num_colors': widgets.IntText(
                 value=10,
                 description='num. colors:',
             ),
-            reverse=widgets.Checkbox(
+            'reverse': widgets.Checkbox(
                 value=False,
                 description='reverse',
             ),
-            legend=widgets.Checkbox(
+            'legend': widgets.Checkbox(
                 value=True,
                 description='show legend',
             ),
-            grid=widgets.Checkbox(
+            'grid': widgets.Checkbox(
                 value=True,
                 description='show grid',
             ),
-            y_label=widgets.Text(value='', description='y label:'),
-        )
+            'y_label': widgets.Text(value='', description='y label:'),
+        }
         container_cmap = widgets.HBox((
             new_widgets['cmap'],
             new_widgets['num_colors'],
@@ -138,7 +150,9 @@ class InteractiveLinePlot(AbstractInteractiveFigure):
             self.figure['legend'].set_draggable(True)
             for lines in self.figure['lines'] + [self.figure['fake_lines']]:
                 for legend_line, ax_line in zip(
-                    self.figure['legend'].get_lines(), lines
+                    self.figure['legend'].get_lines(),
+                    lines,
+                    strict=True,
                 ):
                     pick_radius = 5  # in pt
                     legend_line.set_picker(pick_radius)
@@ -147,7 +161,7 @@ class InteractiveLinePlot(AbstractInteractiveFigure):
                     self.map_legend_to_ax[legend_line].append(ax_line)
         else:
             self.figure['legend_ax'].get_legend().remove()
-            self.map_legend_to_ax = dict()
+            self.map_legend_to_ax = {}
         for ax in self.figure['axes']:
             ax.grid(kwargs['grid'])
         for ax in self.figure['y_label_axes']:

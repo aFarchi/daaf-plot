@@ -52,8 +52,11 @@ quote-style = "single"
 
 [tool.ruff.lint]
 flake8-quotes.inline-quotes = "single"
-mccabe.max-complexity = 12
 pydocstyle.convention = "google"
+pylint.allow-magic-value-types = ["int", "str"]
+pylint.max-args = 15
+pylint.max-locals = 20
+pylint.max-statements = 75
 select = ["ALL"]
 ignore = [
     # no anotations

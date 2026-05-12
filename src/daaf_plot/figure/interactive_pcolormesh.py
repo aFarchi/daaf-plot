@@ -30,9 +30,9 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
         self.y_dim = y_dim
         self.earth_map = open_figure_kwargs.get('projection', None) is not None
         self.update_colorbar_lock = False
-        self.open_figure_kwargs |= dict(x_label=self.x_dim, y_label=self.y_dim)
+        self.open_figure_kwargs |= {'x_label': self.x_dim, 'y_label': self.y_dim}
         self.colorbar_groups_dim = colorbar_groups_dim or []
-        self.colorbar_settings = dict()
+        self.colorbar_settings = {}
         if 'colorbar' not in self.open_figure_kwargs:
             self.open_figure_kwargs['colorbar'] = 'horizontal'
 
@@ -44,19 +44,23 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
     def initialise_plot(self):
         da_data = self.get_first_data()
 
-        pcm_kwargs = dict()
+        pcm_kwargs = {}
         norm = m_colors.Normalize(vmin=da_data.min(), vmax=da_data.max())
         pcm_kwargs['norm'] = norm
         if self.earth_map:
             pcm_kwargs['transform'] = ccrs.PlateCarree()
 
         self.figure['pcm'] = []
-        cb_kwargs = dict(
-            orientation=self.open_figure_kwargs['colorbar'], cax=self.figure['cb_ax']
-        )
+        cb_kwargs = {
+            'orientation': self.open_figure_kwargs['colorbar'],
+            'cax': self.figure['cb_ax'],
+        }
 
         for ax, title, facet_data in zip(
-            self.figure['axes'], self.facet_titles(), self.facet_data(da_data)
+            self.figure['axes'],
+            self.facet_titles(),
+            self.facet_data(da_data),
+            strict=True,
         ):
             ax.set_title(title)
             x = da_data[self.x_dim]
@@ -86,11 +90,15 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
         da_data = self.get_data(**kwargs)
         title = self.get_title(**kwargs)
         self.figure['title'].set_text(title)
-        cb_kwargs = dict(
-            orientation=self.open_figure_kwargs['colorbar'], cax=self.figure['cb_ax']
-        )
+        cb_kwargs = {
+            'orientation': self.open_figure_kwargs['colorbar'],
+            'cax': self.figure['cb_ax'],
+        }
         for ax, pcm, facet_data in zip(
-            self.figure['axes'], self.figure['pcm'], self.facet_data(da_data)
+            self.figure['axes'],
+            self.figure['pcm'],
+            self.facet_data(da_data),
+            strict=True,
         ):
             pcm.set_array(facet_data.to_numpy().flatten())
             ax.format_coord = PColorMeshHoverFormatter(ax, pcm, **cb_kwargs)
@@ -98,60 +106,60 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
         self.figure['figure'].canvas.draw_idle()
 
     def create_colorbar_widgets(self):
-        new_widgets = dict(
-            cmap_type=widgets.Dropdown(
+        new_widgets = {
+            'cmap_type': widgets.Dropdown(
                 options=('continuous', 'discrete'),
                 value='continuous',
                 description='cmap type:',
             ),
-            continuous_cmap_name=widgets.Dropdown(
+            'continuous_cmap_name': widgets.Dropdown(
                 options=daaf_plot.style.continuous_cmap_list,
                 value='viridis',
                 description='cmap name:',
             ),
-            discrete_cmap_name=widgets.Dropdown(
+            'discrete_cmap_name': widgets.Dropdown(
                 options=daaf_plot.style.discrete_cmap_list,
                 value='viridis',
                 description='cmap name:',
             ),
-            discrete_cmap_num_colors=widgets.IntText(
+            'discrete_cmap_num_colors': widgets.IntText(
                 value=10,
                 description='num. colors:',
             ),
-            cmap_reverse=widgets.Checkbox(
+            'cmap_reverse': widgets.Checkbox(
                 value=False,
                 description='reverse',
             ),
-            scheme=widgets.Dropdown(
+            'scheme': widgets.Dropdown(
                 options=('free', 'sequential', 'divergent'),
                 value='free',
                 description='v lim scheme:',
             ),
-            free_vmin=widgets.FloatText(
+            'free_vmin': widgets.FloatText(
                 value=0,
                 description='v min:',
             ),
-            free_vmax=widgets.FloatText(
+            'free_vmax': widgets.FloatText(
                 value=0,
                 description='v max:',
             ),
-            seq_vmin=widgets.FloatText(
+            'seq_vmin': widgets.FloatText(
                 value=0,
                 description='v min:',
             ),
-            seq_vmax=widgets.FloatText(
+            'seq_vmax': widgets.FloatText(
                 value=0,
                 description='v max:',
             ),
-            div_vcentre=widgets.FloatText(
+            'div_vcentre': widgets.FloatText(
                 value=0,
                 description='v centre:',
             ),
-            div_vmax=widgets.FloatText(
+            'div_vmax': widgets.FloatText(
                 value=0,
                 description='v max:',
             ),
-        )
+        }
         button = widgets.Button(description='auto rescale')
         stack = widgets.Stack(
             [
@@ -185,22 +193,27 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
         self.all_widgets['colorbar'] = new_widgets
         button.on_click(self.auto_rescale_colorbar)
 
-    def acquire_colorbar_lock(self):
+    def _acquire_colorbar_lock(self):
         if self.update_colorbar_lock:
             return False
-        else:
-            self.update_colorbar_lock = True
-            return True
+        self.update_colorbar_lock = True
+        return True
 
-    def release_colorbar_lock(self):
-        assert self.update_colorbar_lock
+    def _release_colorbar_lock(self):
+        if not self.update_colorbar_lock:
+            message = 'colorbar lock was not acquired'
+            raise RuntimeError(message)
         self.update_colorbar_lock = False
 
     def update_colorbar_generic(
-        self, from_widgets=False, event_vlim=None, auto_rescale=False
+        self,
+        *,
+        from_widgets=False,
+        event_vlim=None,
+        auto_rescale=False,
     ):
         multi_index = self.current_colorbar_selection()
-        colorbar_settings = self.colorbar_settings.get(multi_index, dict())
+        colorbar_settings = self.colorbar_settings.get(multi_index, {})
         if from_widgets:
             colorbar_settings |= {
                 key: value.value
@@ -226,27 +239,28 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
         pcm_vmin = (
             colorbar_settings['pcm_vmin']
             if 'pcm_vmin' in colorbar_settings
-            else min((pcm.get_array().min() for pcm in self.figure['pcm']))
+            else min(pcm.get_array().min() for pcm in self.figure['pcm'])
         )
         pcm_vmax = (
             colorbar_settings['pcm_vmax']
             if 'pcm_vmax' in colorbar_settings
-            else max((pcm.get_array().max() for pcm in self.figure['pcm']))
+            else max(pcm.get_array().max() for pcm in self.figure['pcm'])
         )
-        return dict(
-            pcm_vmin=pcm_vmin,
-            pcm_vmax=pcm_vmax,
-            pcm_vcentre=(pcm_vmin + pcm_vmax) / 2,
-        )
+        return {
+            'pcm_vmin': pcm_vmin,
+            'pcm_vmax': pcm_vmax,
+            'pcm_vcentre': (pcm_vmin + pcm_vmax) / 2,
+        }
 
     @staticmethod
-    def parse_colorbar_settings(colorbar_settings, event_vlim, auto_rescale):
-        parsed_colorbar_settings = dict()
-
+    def _parse_colorbar_settings_cmap(colorbar_settings):
+        parsed_colorbar_settings = {
+            'cmap_type': colorbar_settings.get(
+                'cmap_type',
+                'continuous',
+            ),
+        }
         cmap = None
-        parsed_colorbar_settings['cmap_type'] = colorbar_settings.get(
-            'cmap_type', 'continuous'
-        )
         match parsed_colorbar_settings['cmap_type']:
             case 'continuous':
                 cmap_name = colorbar_settings.get('continuous_cmap_name', 'viridis')
@@ -276,79 +290,126 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
                     )
                 )
             case _:
-                raise ValueError(
-                    f'unknown cmap type: {parsed_colorbar_settings["cmap_type"]}'
-                )
+                message = f'unknown cmap type: {parsed_colorbar_settings["cmap_type"]}'
+                raise ValueError(message)
         parsed_colorbar_settings['cmap_reverse'] = colorbar_settings.get(
-            'cmap_reverse', False
+            'cmap_reverse',
+            False,
         )
         cmap = cmap.reversed() if parsed_colorbar_settings['cmap_reverse'] else cmap
         parsed_colorbar_settings['finalised_cmap'] = cmap
+        return parsed_colorbar_settings
 
-        vmin = None
-        vmax = None
-        vcentre = None
-        parsed_colorbar_settings['scheme'] = colorbar_settings.get('scheme', 'free')
-        match parsed_colorbar_settings['scheme']:
+    @staticmethod
+    def _get_vlim_free(colorbar_settings, event_vlim, auto_rescale):
+        if event_vlim is not None:
+            vmin, vmax = event_vlim
+        elif auto_rescale:
+            vmin = colorbar_settings['pcm_vmin']
+            vmax = colorbar_settings['pcm_vmax']
+        else:
+            vmin = colorbar_settings.get(
+                'free_vmin',
+                colorbar_settings['pcm_vmin'],
+            )
+            vmax = colorbar_settings.get(
+                'free_vmax',
+                colorbar_settings['pcm_vmax'],
+            )
+        vcentre = (vmin + vmax) / 2
+        return vmin, vmax, vcentre
+
+    @staticmethod
+    def _get_vlim_sequential(colorbar_settings, event_vlim, auto_rescale):
+        if event_vlim is not None:
+            vmin = colorbar_settings.get(
+                'seq_vmin',
+                colorbar_settings['pcm_vmin'],
+            )
+            _, vmax = event_vlim
+        elif auto_rescale:
+            vmin = colorbar_settings.get(
+                'seq_vmin',
+                colorbar_settings['pcm_vmin'],
+            )
+            vmax = colorbar_settings['pcm_vmax']
+        else:
+            vmin = colorbar_settings.get(
+                'seq_vmin',
+                colorbar_settings['pcm_vmin'],
+            )
+            vmax = colorbar_settings.get(
+                'seq_vmax',
+                colorbar_settings['pcm_vmax'],
+            )
+        vcentre = (vmin + vmax) / 2
+        return vmin, vmax, vcentre
+
+    @staticmethod
+    def _get_vlim_divergent(colorbar_settings, event_vlim, auto_rescale):
+        if event_vlim is not None:
+            vcentre = colorbar_settings.get(
+                'div_vcentre',
+                colorbar_settings['pcm_vcentre'],
+            )
+            _, vmax = event_vlim
+        elif auto_rescale:
+            vcentre = colorbar_settings.get(
+                'div_vcentre',
+                colorbar_settings['pcm_vcentre'],
+            )
+            vmax = max(
+                vcentre - colorbar_settings['pcm_vmin'],
+                colorbar_settings['pcm_vmax'] - vcentre,
+            )
+        else:
+            vcentre = colorbar_settings.get(
+                'div_vcentre',
+                colorbar_settings['pcm_vcentre'],
+            )
+            vmax = colorbar_settings.get(
+                'div_vmax',
+                colorbar_settings['pcm_vmax'],
+            )
+        vmin = 2 * vcentre - vmax
+        return vmin, vmax, vcentre
+
+    @staticmethod
+    def _get_vlim(scheme, colorbar_settings, event_vlim, auto_rescale):
+        match scheme:
             case 'free':
-                if event_vlim is not None:
-                    vmin, vmax = event_vlim
-                elif auto_rescale:
-                    vmin = colorbar_settings['pcm_vmin']
-                    vmax = colorbar_settings['pcm_vmax']
-                else:
-                    vmin = colorbar_settings.get(
-                        'free_vmin', colorbar_settings['pcm_vmin']
-                    )
-                    vmax = colorbar_settings.get(
-                        'free_vmax', colorbar_settings['pcm_vmax']
-                    )
-                vcentre = (vmin + vmax) / 2
-            case 'sequential':
-                if event_vlim is not None:
-                    vmin = colorbar_settings.get(
-                        'seq_vmin', colorbar_settings['pcm_vmin']
-                    )
-                    _, vmax = event_vlim
-                elif auto_rescale:
-                    vmin = colorbar_settings.get(
-                        'seq_vmin', colorbar_settings['pcm_vmin']
-                    )
-                    vmax = colorbar_settings['pcm_vmax']
-                else:
-                    vmin = colorbar_settings.get(
-                        'seq_vmin', colorbar_settings['pcm_vmin']
-                    )
-                    vmax = colorbar_settings.get(
-                        'seq_vmax', colorbar_settings['pcm_vmax']
-                    )
-                vcentre = (vmin + vmax) / 2
-            case 'divergent':
-                if event_vlim is not None:
-                    vcentre = colorbar_settings.get(
-                        'div_vcentre', colorbar_settings['pcm_vcentre']
-                    )
-                    _, vmax = event_vlim
-                elif auto_rescale:
-                    vcentre = colorbar_settings.get(
-                        'div_vcentre', colorbar_settings['pcm_vcentre']
-                    )
-                    vmax = max(
-                        vcentre - colorbar_settings['pcm_vmin'],
-                        colorbar_settings['pcm_vmax'] - vcentre,
-                    )
-                else:
-                    vcentre = colorbar_settings.get(
-                        'div_vcentre', colorbar_settings['pcm_vcentre']
-                    )
-                    vmax = colorbar_settings.get(
-                        'div_vmax', colorbar_settings['pcm_vmax']
-                    )
-                vmin = 2 * vcentre - vmax
-            case _:
-                raise ValueError(
-                    f'unknown scheme: {parsed_colorbar_settings["scheme"]}'
+                return InteractivePColorMesh._get_vlim_free(
+                    colorbar_settings,
+                    event_vlim,
+                    auto_rescale,
                 )
+            case 'sequential':
+                return InteractivePColorMesh._get_vlim_sequential(
+                    colorbar_settings,
+                    event_vlim,
+                    auto_rescale,
+                )
+            case 'divergent':
+                return InteractivePColorMesh._get_vlim_divergent(
+                    colorbar_settings,
+                    event_vlim,
+                    auto_rescale,
+                )
+            case _:
+                message = f'unknown scheme: {scheme}'
+                raise ValueError(message)
+
+    @staticmethod
+    def _parse_colorbar_settings_vlim(colorbar_settings, event_vlim, auto_rescale):
+        parsed_colorbar_settings = {
+            'scheme': colorbar_settings.get('scheme', 'free'),
+        }
+        vmin, vmax, vcentre = InteractivePColorMesh._get_vlim(
+            parsed_colorbar_settings['scheme'],
+            colorbar_settings,
+            event_vlim,
+            auto_rescale,
+        )
         parsed_colorbar_settings['free_vmin'] = vmin
         parsed_colorbar_settings['free_vmax'] = vmax
         parsed_colorbar_settings['seq_vmin'] = vmin
@@ -361,6 +422,16 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
         parsed_colorbar_settings['pcm_vcentre'] = colorbar_settings['pcm_vcentre']
         return parsed_colorbar_settings
 
+    @staticmethod
+    def parse_colorbar_settings(colorbar_settings, event_vlim, auto_rescale):
+        return InteractivePColorMesh._parse_colorbar_settings_cmap(
+            colorbar_settings,
+        ) | InteractivePColorMesh._parse_colorbar_settings_vlim(
+            colorbar_settings,
+            event_vlim,
+            auto_rescale,
+        )
+
     def apply_colorbar_settings(self, colorbar_settings):
         for pcm in self.figure['pcm']:
             pcm.cmap = colorbar_settings['finalised_cmap']
@@ -371,25 +442,25 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
             value.value = colorbar_settings[key]
 
     def update_colorbar(self, **_kwargs):
-        if not self.acquire_colorbar_lock():
+        if not self._acquire_colorbar_lock():
             return
         self.update_colorbar_generic(from_widgets=True)
-        self.release_colorbar_lock()
+        self._release_colorbar_lock()
 
     def update_colorbar_from_settings(self):
-        if not self.acquire_colorbar_lock():
+        if not self._acquire_colorbar_lock():
             return
         self.update_colorbar_generic()
-        self.release_colorbar_lock()
+        self._release_colorbar_lock()
 
     def update_colorbar_from_events(self, ax):
-        if not self.acquire_colorbar_lock():
+        if not self._acquire_colorbar_lock():
             return
         self.update_colorbar_generic(event_vlim=ax.get_xlim())
-        self.release_colorbar_lock()
+        self._release_colorbar_lock()
 
     def auto_rescale_colorbar(self, *_args, **_kwargs):
-        if not self.acquire_colorbar_lock():
+        if not self._acquire_colorbar_lock():
             return
         self.update_colorbar_generic(auto_rescale=True)
-        self.release_colorbar_lock()
+        self._release_colorbar_lock()

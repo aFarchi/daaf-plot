@@ -31,10 +31,10 @@ class PColorMeshHoverFormatter:
     def is_monotonic(x):
         if (np.diff(x) > 0).all():
             return 'increasing'
-        elif (np.diff(x) < 0).all():
+        if (np.diff(x) < 0).all():
             return 'decreasing'
-        else:
-            raise ValueError('coordinate is not monotonic')
+        message = 'coordinate is not monotonic'
+        raise ValueError(message)
 
     def __call__(self, x, y):
         if (
@@ -53,10 +53,7 @@ class PColorMeshHoverFormatter:
             nearest_z = self.cax.format_xdata(nearest_z)
         else:
             nearest_z = self.cax.format_ydata(nearest_z)
-        return 'cursor position: x = {x}, y = {y} — data: x = {nx}, y = {ny}, z={nz}'.format(
-            x=self.ax.format_xdata(x),
-            y=self.ax.format_ydata(y),
-            nx=self.ax.format_xdata(nearest_x),
-            ny=self.ax.format_ydata(nearest_y),
-            nz=nearest_z,
-        )
+        return f'cursor position: x = {self.ax.format_xdata(x)}, \
+            y = {self.ax.format_ydata(y)} — \
+            data: x = {self.ax.format_xdata(nearest_x)}, \
+            y = {self.ax.format_ydata(nearest_y)}, z={nearest_z}'

@@ -25,10 +25,10 @@ class AbstractInteractiveFigure(AbstractFigure, abc.ABC):
             flatten_order=flatten_order,
         )
         self.all_widgets = {}
-        self.tabs = dict(children=[], titles=[])
+        self.tabs = {'children': [], 'titles': []}
         self.main_widget = None
         self.is_interactive_open = False
-        self.current_scales = dict(x=None, y=None)
+        self.current_scales = {'x': None, 'y': None}
 
     def interactive_show(self):
         if not self.is_open:
@@ -53,14 +53,14 @@ class AbstractInteractiveFigure(AbstractFigure, abc.ABC):
         self.main_widget = widgets.VBox((widget_tabs, self.figure['figure'].canvas))
 
     def enable_interaction(self):
-        for name, the_widgets in self.all_widgets.items():
+        for name in self.all_widgets:
             widgets.interactive_output(
                 getattr(self, f'update_{name}'),
                 self.all_widgets[name],
             )
 
     def create_selection_widgets(self, smoothing):
-        new_widgets = dict()
+        new_widgets = {}
         for dim in self.da_data.dims:
             if dim not in self.exclude_dims:
                 if isinstance(self.da_data[dim].to_numpy()[0], str):
@@ -96,26 +96,26 @@ class AbstractInteractiveFigure(AbstractFigure, abc.ABC):
     def update_selection(self, **kwargs): ...
 
     def create_xy_scale_widgets(self):
-        new_widgets = dict(
-            x_scale=widgets.Dropdown(
+        new_widgets = {
+            'x_scale': widgets.Dropdown(
                 options=scale_list,
                 value='linear',
                 description='x scale:',
             ),
-            x_inverted=widgets.Checkbox(
+            'x_inverted': widgets.Checkbox(
                 value=False,
                 description='invert x axis',
             ),
-            y_scale=widgets.Dropdown(
+            'y_scale': widgets.Dropdown(
                 options=scale_list,
                 value='linear',
                 description='y scale:',
             ),
-            y_inverted=widgets.Checkbox(
+            'y_inverted': widgets.Checkbox(
                 value=False,
                 description='invert y axis',
             ),
-        )
+        }
         button_x = widgets.Button(description='auto rescale x')
         button_y = widgets.Button(description='auto rescale y')
         button_xy = widgets.Button(description='auto rescale xy')

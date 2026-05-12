@@ -6,11 +6,74 @@ from matplotlib import pyplot as plt
 logger = logging.getLogger(__name__)
 
 
+def open_figure(
+    *,
+    colorbar=None,
+    vcb_w=0.5,
+    pad_w_ax_vcb=0.5,
+    hcb_h=0.2,
+    pad_h_ax_hcb=0.5,
+    legend=None,
+    vertical_legend_w=2,
+    pad_w_ax_vertical_legend=0.5,
+    horizontal_legend_h=2,
+    pad_h_ax_horizontal_legend=0.5,
+    **kwargs,
+):
+    match (colorbar, legend):
+        case None, None:
+            kwargs |= {
+                'pad_w_ax_vertical_aux': 0,
+                'vertical_aux_w': 0,
+                'pad_h_ax_horizontal_aux': 0,
+                'horizontal_aux_h': 0,
+            }
+        case 'horizontal', None:
+            kwargs |= {
+                'pad_w_ax_vertical_aux': 0,
+                'vertical_aux_w': 0,
+                'pad_h_ax_horizontal_aux': pad_h_ax_hcb,
+                'horizontal_aux_h': hcb_h,
+                'horizontal_aux_ax_name': 'cb_ax',
+            }
+        case 'vertical', None:
+            kwargs |= {
+                'pad_w_ax_vertical_aux': pad_w_ax_vcb,
+                'vertical_aux_w': vcb_w,
+                'pad_h_ax_horizontal_aux': 0,
+                'horizontal_aux_h': 0,
+                'vertical_aux_ax_name': 'cb_ax',
+            }
+        case None, 'horizontal':
+            kwargs |= {
+                'pad_w_ax_vertical_aux': 0,
+                'vertical_aux_w': 0,
+                'pad_h_ax_horizontal_aux': pad_h_ax_horizontal_legend,
+                'horizontal_aux_h': horizontal_legend_h,
+                'horizontal_aux_ax_name': 'legend_ax',
+            }
+        case None, 'vertical':
+            kwargs |= {
+                'pad_w_ax_vertical_aux': pad_w_ax_vertical_legend,
+                'vertical_aux_w': vertical_legend_w,
+                'pad_h_ax_horizontal_aux': 0,
+                'horizontal_aux_h': 0,
+                'vertical_aux_ax_name': 'legend_ax',
+            }
+        case _:
+            message = 'cannot have at the same time colorbar and legend'
+            raise ValueError(message)
+    geometry = MatplotlibFigureGeometry(**kwargs)
+    with plt.ioff():
+        return geometry.open_figure()
+
+
 class MatplotlibFigureGeometry:
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         num_rows,
         num_cols,
+        *,
         figure_w=None,
         axes_w=None,
         figure_h=None,
@@ -62,24 +125,23 @@ class MatplotlibFigureGeometry:
 
     def tolist(
         self,
-        scalar_or_iterable: list[float] | np.ndarray[float] | float | int,
+        scalar_or_iterable: list[float] | np.ndarray[float] | float,
         length: int,
     ):
         match scalar_or_iterable:
             case list():
                 if len(scalar_or_iterable) == length:
                     return scalar_or_iterable
-                raise ValueError(
-                    f'inconsistent length: expected {length}, got {len(scalar_or_iterable)}'
-                )
+                message = f'inconsistent length: expected {length},\
+                    got {len(scalar_or_iterable)}'
+                raise ValueError(message)
             case np.ndarray():
                 return self.tolist(scalar_or_iterable.tolist(), length)
             case float() | int():
                 return [scalar_or_iterable for _ in range(length)]
             case _:
-                raise ValueError(
-                    f'unable to convert type {type(scalar_or_iterable)} to list'
-                )
+                message = f'unable to convert type {type(scalar_or_iterable)} to list'
+                raise ValueError(message)
 
     def compute_padding_w(self):
         pad_w_in = self.tolist(self.pad_w_in, self.num_cols - 1)
@@ -113,11 +175,11 @@ class MatplotlibFigureGeometry:
                 axes_w = np.array([0, *axes_w])
                 return figure_w, axes_w
             case None, None:
-                raise ValueError('one of "figure_w" or "axes_w" must be provided')
+                message = 'one of "figure_w" or "axes_w" must be provided'
+                raise ValueError(message)
             case _:
-                raise ValueError(
-                    'cannot provide at the same time "figure_w" and "axes_w"'
-                )
+                message = 'cannot provide at the same time "figure_w" and "axes_w"'
+                raise ValueError(message)
 
     def compute_figure_h(self, axes_w, padding_h):
         match self.figure_h, self.axes_h, self.h_ratio_axes:
@@ -142,13 +204,14 @@ class MatplotlibFigureGeometry:
                 axes_h = np.array([0, *axes_h])
                 return figure_h, axes_h
             case None, None, None:
-                raise ValueError(
+                message = (
                     'one of "figure_h", "axes_h", or "h_ratio_axes" must be provided'
                 )
+                raise ValueError(message)
             case _:
-                raise ValueError(
-                    'cannot provide at the same time "figure_h", "axes_h", and "h_ratio_axes"'
-                )
+                message = 'cannot provide at the same time \
+                    "figure_h", "axes_h", and "h_ratio_axes"'
+                raise ValueError(message)
 
     @staticmethod
     def axes_wh_to_extent(padding_w, padding_h, figure_w, axes_w, figure_h, axes_h):
@@ -169,7 +232,12 @@ class MatplotlibFigureGeometry:
             figure_w,
             figure_h,
             self.axes_wh_to_extent(
-                padding_w, padding_h, figure_w, axes_w, figure_h, axes_h
+                padding_w,
+                padding_h,
+                figure_w,
+                axes_w,
+                figure_h,
+                axes_h,
             ),
         )
 
@@ -241,7 +309,12 @@ class MatplotlibFigureGeometry:
             axes_inner = []
             for ix in range(self.num_cols):
                 share_x, share_y, ax = self.open_ax(
-                    figure, axes_extent, ix, iy, share_x, share_y
+                    figure,
+                    axes_extent,
+                    ix,
+                    iy,
+                    share_x,
+                    share_y,
                 )
                 axes_inner.append(ax)
             axes.append(axes_inner)
@@ -255,7 +328,7 @@ class MatplotlibFigureGeometry:
         if self.horizontal_aux_h > 0:
             horizontal_aux_extent = self.horizontal_aux_extent(figure_w, figure_h)
             aux_axes[self.horizontal_aux_ax_name] = figure.add_axes(
-                horizontal_aux_extent
+                horizontal_aux_extent,
             )
 
         return {'figure': figure, 'axes': axes} | aux_axes

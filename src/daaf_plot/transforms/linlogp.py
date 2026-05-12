@@ -37,7 +37,7 @@ class InvertedLinLogPressureTransform(mtransforms.Transform):
         mtransforms.Transform.__init__(self)
         self.threshold = threshold
 
-    def transform_non_affine(self, y_coordinate):
+    def transform_non_affine(self, y_coordinate):  # noqa: PLR6301
         return np.where(
             y_coordinate >= 2,
             100 + (y_coordinate - 2) * (1000 - 100) / 3,
