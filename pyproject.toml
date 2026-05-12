@@ -32,18 +32,11 @@ description = "Personal python toolbox to make interactive plot in python notebo
 name = "daaf-plot"
 readme = "README.md"
 requires-python = ">= 3.11"
-version = "1.0.1"
+version = "1.1.0"
 keywords = [
     "visualization",
     "interactive plots",
     "notebooks",
-]
-
-[project.optional-dependencies]
-dev = [
-    "ipykernel",
-    "netCDF4",
-    "ruff",
 ]
 
 [project.urls]
@@ -61,4 +54,40 @@ quote-style = "single"
 flake8-quotes.inline-quotes = "single"
 mccabe.max-complexity = 12
 pydocstyle.convention = "google"
-select = ["I"]
+select = ["ALL"]
+ignore = [
+    # no anotations
+    "ANN",
+    # no copyright on files
+    "CPY001",
+    # no docstrings
+    "D",
+]
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tool.pixi.pypi-dependencies]
+daaf_plot = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+lint = "ruff check"
+format = "ruff format --config \"lint.ignore = ['COM812']\""
+jl = "jupyter lab --no-browser"
+
+[tool.pixi.dependencies]
+cartopy = ">=0.25.0,<0.26"
+ipympl = ">=0.10.0,<0.11"
+ipython = ">=9.13.0,<10"
+ipywidgets = ">=8.1.8,<9"
+matplotlib = ">=3.10.9,<4"
+numpy = ">=2.4.3,<3"
+pandas = ">=3.0.2,<4"
+xarray = ">=2026.4.0,<2027"
+pixi-pycharm = ">=0.0.11,<0.0.12"
+mypy = ">=1.20.2,<2"
+ruff = ">=0.15.12,<0.16"
+netcdf4 = ">=1.7.4,<2"
+ipykernel = ">=7.2.0,<8"
+jupyterlab = ">=4.5.7,<5"
