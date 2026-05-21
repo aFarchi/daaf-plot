@@ -2,6 +2,7 @@ import cartopy.crs as ccrs
 import ipywidgets as widgets
 import matplotlib.colors as m_colors
 import matplotlib.pyplot as plt
+import numpy as np
 
 import daaf_plot.style
 from daaf_plot.figure.abstract_interactive_figure import AbstractInteractiveFigure
@@ -14,10 +15,13 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
         da_data,
         x_dim,
         y_dim,
+        *,
         facet_dim=None,
         open_figure_kwargs=None,
         flatten_order='C',
         colorbar_groups_dim=None,
+        default_widget_values=None,
+        coastlines=False,
     ):
         super().__init__(
             da_data,
@@ -25,6 +29,7 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
             open_figure_kwargs=open_figure_kwargs,
             facet_dim=facet_dim,
             flatten_order=flatten_order,
+            default_widget_values=default_widget_values,
         )
         self.x_dim = x_dim
         self.y_dim = y_dim
@@ -35,6 +40,7 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
         self.colorbar_settings = {}
         if 'colorbar' not in self.open_figure_kwargs:
             self.open_figure_kwargs['colorbar'] = 'horizontal'
+        self.coastlines = coastlines
 
     def create_widgets(self):
         self.create_selection_widgets(smoothing=0)
@@ -69,6 +75,8 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
             pcm = ax.pcolormesh(x, y, z, **pcm_kwargs)
             ax.format_coord = PColorMeshHoverFormatter(ax, pcm, **cb_kwargs)
             self.figure['pcm'].append(pcm)
+            if self.coastlines:
+                ax.coastlines()
 
         self.figure['title'] = plt.suptitle('tmp title')
 
@@ -464,3 +472,9 @@ class InteractivePColorMesh(AbstractInteractiveFigure):
             return
         self.update_colorbar_generic(auto_rescale=True)
         self._release_colorbar_lock()
+
+    def set_categorical_ylabel(self):
+        labels = self.da_data[self.y_dim].to_numpy()
+        for ax in self.figure['axes']:
+            ax.set_yticks(np.arange(len(labels)))
+            ax.set_yticklabels(labels)

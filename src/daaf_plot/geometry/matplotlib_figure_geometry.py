@@ -299,17 +299,14 @@ class MatplotlibFigureGeometry:
             ax.set_xlabel(self.x_label)
         return ax
 
-    def open_figure(self):
-        figure_w, figure_h, axes_extent = self.get_axes_extent()
-
-        # create figure
-        figure = plt.figure(figsize=(figure_w, figure_h), dpi=self.dpi)
-        figure.canvas.header_visible = False
-
-        # add main axes
+    def open_main_axes(self, figure, axes_extent):
         axes = []
-        share_x_axes = [[None for _ in range(self.num_cols)] for _ in range(self.num_rows)]
-        share_y_axes = [[None for _ in range(self.num_cols)] for _ in range(self.num_rows)]
+        share_x_axes = [
+            [None for _ in range(self.num_cols)] for _ in range(self.num_rows)
+        ]
+        share_y_axes = [
+            [None for _ in range(self.num_cols)] for _ in range(self.num_rows)
+        ]
         for iy in range(self.num_rows - 1, -1, -1):
             axes_inner = []
             for ix in range(self.num_cols):
@@ -323,19 +320,23 @@ class MatplotlibFigureGeometry:
                 )
                 axes_inner.append(ax)
                 if self.share_x == 'all' and ix == 0 and iy == self.num_rows - 1:
-                    share_x_axes = [[ax for _ in range(self.num_cols)] for _ in range(self.num_rows)]
+                    share_x_axes = [
+                        [ax for _ in range(self.num_cols)] for _ in range(self.num_rows)
+                    ]
                 elif self.share_x == 'col' and iy == self.num_rows - 1:
                     for jy in range(self.num_rows):
                         share_x_axes[jy][ix] = ax
                 if self.share_y == 'all' and ix == 0 and iy == self.num_rows - 1:
-                    share_y_axes = [[ax for _ in range(self.num_cols)] for _ in range(self.num_rows)]
+                    share_y_axes = [
+                        [ax for _ in range(self.num_cols)] for _ in range(self.num_rows)
+                    ]
                 if self.share_y == 'row' and ix == 0:
                     for jx in range(self.num_cols):
                         share_y_axes[iy][jx] = ax
             axes.append(axes_inner)
-        axes = np.array(axes)
+        return np.array(axes)
 
-        # add aux axes
+    def open_aux_ax(self, figure, figure_w, figure_h):
         aux_axes = {}
         if self.vertical_aux_w > 0:
             vertical_aux_extent = self.vertical_aux_extent(figure_w, figure_h)
@@ -345,5 +346,19 @@ class MatplotlibFigureGeometry:
             aux_axes[self.horizontal_aux_ax_name] = figure.add_axes(
                 horizontal_aux_extent,
             )
+        return aux_axes
+
+    def open_figure(self):
+        figure_w, figure_h, axes_extent = self.get_axes_extent()
+
+        # create figure
+        figure = plt.figure(figsize=(figure_w, figure_h), dpi=self.dpi)
+        figure.canvas.header_visible = False
+
+        # add main axes
+        axes = self.open_main_axes(figure, axes_extent)
+
+        # add aux axes
+        aux_axes = self.open_aux_ax(figure, figure_w, figure_h)
 
         return {'figure': figure, 'axes': axes} | aux_axes

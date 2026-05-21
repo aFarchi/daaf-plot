@@ -16,6 +16,7 @@ class AbstractInteractiveFigure(AbstractFigure, abc.ABC):
         open_figure_kwargs,
         facet_dim,
         flatten_order,
+        default_widget_values,
     ):
         super().__init__(
             da_data,
@@ -29,6 +30,7 @@ class AbstractInteractiveFigure(AbstractFigure, abc.ABC):
         self.main_widget = None
         self.is_interactive_open = False
         self.current_scales = {'x': None, 'y': None}
+        self.default_widget_values = default_widget_values or {}
 
     def interactive_show(self):
         if not self.is_open:
@@ -39,6 +41,7 @@ class AbstractInteractiveFigure(AbstractFigure, abc.ABC):
             self.create_widgets()
             self.create_tabs()
             self.enable_interaction()
+            self.set_initial_widget_values(**self.default_widget_values)
             self.is_interactive_open = True
         display(self.main_widget)
 
@@ -58,6 +61,28 @@ class AbstractInteractiveFigure(AbstractFigure, abc.ABC):
                 getattr(self, f'update_{name}'),
                 self.all_widgets[name],
             )
+
+    def set_initial_widget_values(self, **kwargs):
+        def find_option(options, value):
+            for option in options:
+                if option[0] == value:
+                    return option[1]
+            raise ValueError
+
+        def set_value(the_widget, value):
+            index = find_option(the_widget.options, value)
+            the_widget.value = index
+
+        for main_key, main_value in kwargs.items():
+            for sub_key, sub_value in main_value.items():
+                if main_key == 'selection' and isinstance(
+                    self.all_widgets['selection'][sub_key],
+                    widgets.Dropdown,
+                ):
+                    set_value(self.all_widgets['selection'][sub_key], sub_value)
+                else:
+                    self.all_widgets[main_key][sub_key].value = sub_value
+        self.auto_rescale_xy()
 
     def create_selection_widgets(self, smoothing):
         new_widgets = {}

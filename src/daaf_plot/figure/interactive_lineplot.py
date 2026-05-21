@@ -15,6 +15,7 @@ class InteractiveLinePlot(AbstractInteractiveFigure):
         facet_dim=None,
         open_figure_kwargs=None,
         flatten_order='C',
+        default_widget_values=None,
     ):
         super().__init__(
             da_data,
@@ -22,6 +23,7 @@ class InteractiveLinePlot(AbstractInteractiveFigure):
             open_figure_kwargs=open_figure_kwargs,
             facet_dim=facet_dim,
             flatten_order=flatten_order,
+            default_widget_values=default_widget_values,
         )
         self.x_dim = x_dim
         self.line_dim = line_dim
